@@ -1,4 +1,4 @@
-# Exploring Mitski's Discography Through Text Mining with R"
+# Exploring Mitski's Discography Through Text Mining with R
 
 ## Introduction
 
@@ -322,7 +322,7 @@ puberty_2_wc
 be_the_cowboy_2_wc
 ```
 
-# Conclusion
+## Conclusion
 
 Mitski is famed for her poetic prose about heartache and loneliness, strong vocal abilities, and esoteric performance style. In an effort to better understand Mitski's songs, this project was able to offer a more data-driven analysis of the themes in Mitski's discography. 
 
