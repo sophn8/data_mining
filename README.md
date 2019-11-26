@@ -92,7 +92,7 @@ g_tracks_per_alb <- ggplot(tracks_per_alb, aes(album, track_count)) +
 
 g_tracks_per_alb # try to reorder x in graph #
 ```
-[track_count](/img/track_count.png)
+![track_count](/img/track_count.png)
 
 ```{r summary_2}
 # Create a new df to summarize data
@@ -109,7 +109,7 @@ g_lines_per_alb <- ggplot(lines_per_alb, aes(album, line_count)) +
 
 g_lines_per_alb # try to reorder x in graph #
 ```
-[line_count](/img/line_count.png)
+![line_count](/img/line_count.png)
 
 ```{r summary_3}
 # Create a new data.frame separating rows by individual words and removing stop words
@@ -133,7 +133,7 @@ g_words_per_track <- ggplot(words_per_track, aes(track_title, word_count)) +
 g_words_per_track
 
 ```
-[word_count](/img/word_count.png)
+![word_count](/img/word_count.png)
 
 ## Sentiment Analysis I
 
@@ -165,6 +165,7 @@ tidy_mitski <- mitski_albums %>%
 
 tidy_mitski
 ```
+![sent_1](/img/sent_1.png)
 
 ## Sentiment Analysis II
 
@@ -199,6 +200,7 @@ tidy_mitski_2 <- mitski_albums %>%
 
 tidy_mitski_2
 ```
+![sent_2](/img/sent_2.png)
 
 ## Tidying the Data with tm package
 
@@ -274,6 +276,7 @@ g_mitski_top_terms <- mitski_top_terms %>%
 
 g_mitski_top_terms
 ```
+![lda](/img/lda.png)
 
 ## In Defense of Wordclouds
 
@@ -285,6 +288,8 @@ library(wordcloud)
 # Wordcloud for three studio albums
 cloud <- wordcloud(corpus, max.words = 70, random.order = FALSE, ordered.clouds = TRUE)
 ```
+
+![wc1](/img/wc1.png)
 
 Using the [ggwordcloud](https://cran.r-project.org/web/packages/ggwordcloud/vignettes/ggwordcloud.html) package, I also created three separate wordclouds for each of Mitski's three records in ascending order of release.
 
@@ -328,6 +333,9 @@ bury_me_2_wc
 puberty_2_wc
 be_the_cowboy_2_wc
 ```
+![wc2](/img/wc2.png)
+![wc3](/img/wc3.png)
+![wc4](/img/wc4.png)
 
 ## Conclusion
 
