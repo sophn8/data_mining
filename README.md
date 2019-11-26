@@ -91,7 +91,10 @@ g_tracks_per_alb <- ggplot(tracks_per_alb, aes(album, track_count)) +
   geom_bar(stat = "identity") + ggtitle("Track Count Per Album")
 
 g_tracks_per_alb # try to reorder x in graph #
+```
+[track_count](/img/track_count.png)
 
+```{r summary_2}
 # Create a new df to summarize data
 lines_per_alb <- mitski_albums %>%
   group_by(album) %>%
@@ -105,7 +108,10 @@ g_lines_per_alb <- ggplot(lines_per_alb, aes(album, line_count)) +
   geom_bar(stat = "identity") + ggtitle("Lyric Line Count Per Album")
 
 g_lines_per_alb # try to reorder x in graph #
+```
+[line_count](/img/line_count.png)
 
+```{r summary_3}
 # Create a new data.frame separating rows by individual words and removing stop words
 lyric_words <- mitski_albums %>%
   unnest_tokens(word, lyric) %>%
@@ -127,6 +133,7 @@ g_words_per_track <- ggplot(words_per_track, aes(track_title, word_count)) +
 g_words_per_track
 
 ```
+[word_count](/img/word_count.png)
 
 ## Sentiment Analysis I
 
