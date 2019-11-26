@@ -1,9 +1,9 @@
 # Exploring Mitski's Discography Through Text Mining with R
 
 
-Sophia Ng 
+*Sophia Ng* 
 
-GR5058 Data Mining for Social Science - Fall 2019
+*GR5058 Data Mining for Social Science - Fall 2019*
 
 
 ## Introduction
