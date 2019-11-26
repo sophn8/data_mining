@@ -3,8 +3,6 @@
 
 Sophia Ng 
 
-UNI: swn2111
-
 GR5058 Data Mining for Social Science - Fall 2019
 
 
