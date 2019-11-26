@@ -1,5 +1,13 @@
 # Exploring Mitski's Discography Through Text Mining with R
 
+
+Sophia Ng 
+
+UNI: swn2111
+
+GR5058 Data Mining for Social Science - Fall 2019
+
+
 ## Introduction
 
 Mitski is a Japanese-American singer-songwriter based in the United States. Described by [*NPR*](https://www.npr.org/2018/09/06/642252679/mitski-is-the-21st-centurys-poet-laureate-of-young-adulthood) as "the 21st Century's Poet Laureate Of Young Adulthood," Mitski's lyrics skew towards feelings of lonesomeness and forlorning. A profile in [*The New Yorker*](https://www.newyorker.com/magazine/2019/07/08/on-the-road-with-mitski) describes the musician as one who "writes achingly intense songs about private yearnings."
