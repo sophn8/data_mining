@@ -39,7 +39,6 @@ bury_me <- genius_album(artist = "Mitski", album = "Bury Me At Makeout Creek")
 The Genius package includes four columns in their data.frames: `track_title`, `track_n`, `line`, and `lyric`. In the code below, I add a new `album` column in each data.frame.
 
 ```{r new_column, echo=TRUE, message=FALSE, warning=FALSE}
-
 # Create "album" column and fill with album name, "Be The Cowboy"
 be_the_cowboy["album"] <- "Be The Cowboy (2018)"  
 
