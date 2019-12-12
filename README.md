@@ -88,7 +88,11 @@ g_tracks_per_alb <- ggplot(tracks_per_alb,
                            ggtitle("Track Count Per Album")
 
 g_tracks_per_alb # try to reorder x in graph #
+```
 
+![track_count](/img/track_count.png)
+
+```
 # creating a new df to summarize data
 lines_per_alb <- mitski_albums %>%
   group_by(album) %>%
@@ -105,7 +109,11 @@ g_lines_per_alb <- ggplot(lines_per_alb,
                    ggtitle("Lyric Line Count Per Album")
 
 g_lines_per_alb # try to reorder x in graph #
+```
 
+![line_count](/img/line_count.png)
+
+```
 # create a new data.frame separating rows by individual words and removing stop words
 lyric_words <- mitski_albums %>%
   unnest_tokens(word, lyric) %>%
@@ -127,3 +135,226 @@ g_words_per_track <- ggplot(words_per_track, aes(x = reorder(track_title, word_c
                      ggtitle("Word Count Per Track") + coord_flip() 
 g_words_per_track
 ```
+![word_count](/img/word_count.png)
+
+# Sentiment Analysis
+
+With the help of the [tidytext](https://cran.r-project.org/web/packages/tidytext/index.html) and [topic models](https://cran.r-project.org/web/packages/topicmodels/index.html) packages, Sentiment Analysis allows us to gain an understanding of the emotions evoked from a particular text. For my research, I used the ggplot2 package to visualize the top ten negative and top ten positive sentiments expressed from Mitski's three studio albums. 
+In order to visualize the negative and positive sentiments, I prepared the data.frame by using piping to separate each individual word in the line into its own row in the data.frame, removing stop words using the tidytext package, and joining in the "bing" lexicon, which classifies individual words (or unigrams) as either "positive" or "negative". 
+
+According to my visualization, one of the more positive sentiments expressed in Mitski's music is "love." However, any Mitski listener would know that Mitski's sentiment of "love" is often negative. Mitski's songs generally connote love in relation to lonesomeness. While sentiment analysis on the unigram level can help us gain a cursory understanding to the scope of emotions expressed in textual data, this sentiment analysis fails to contextualize the true meaning of Mitski's lyrics.  
+
+```{r sentiment}
+library(topicmodels)
+
+tidy_mitski <- mitski_albums %>%
+  unnest_tokens(word, lyric) %>%
+  anti_join(stop_words) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup() %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()  
+
+tidy_mitski
+```
+
+![sent_1](/img/sent_1.png)
+
+# Sentiment Analysis II
+
+As described in the previous section, I was unsatisfied with the text analysis using the "bing" lexicon. The "bing" lexicon sees sentiment as a binary: positive or negative. Given Mitski's poetic complexity, I explored another lexicon to conduct my sentiment analysis. 
+
+The [textdata package](https://cran.r-project.org/web/packages/textdata/index.html) provides a framework to download, parse, and store text datasets on the disk and load them when needed. Moreover, it gave me access to the "nrc" lexicon. According to ["Text Mining with R"](https://www.tidytextmining.com/sentiment.html) documentation, the nrc lexicon categorizes words in a binary fashion (“yes”/“no”) into categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise." 
+
+I am more satisfied with the results of this sentiment analysis as it provides a more thematic sentiment analysis. For example, this sentiment analysis explores how different individual unigrams contribute to more thematic sentiments of anger, anticipation, disgust, fear, and more. 
+
+```{r sentiment_2}
+library(textdata)
+
+get_sentiments("nrc")
+
+tidy_mitski_2 <- mitski_albums %>%
+  unnest_tokens(word, lyric) %>%
+  anti_join(stop_words) %>%
+  inner_join(get_sentiments("nrc")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup() %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()  
+
+tidy_mitski_2
+```
+
+![sent_2](/img/sent_2.png)
+
+# Tidying the Data with tm package
+
+As described in [RDocumentation](https://www.rdocumentation.org/packages/tidytext/versions/0.2.0/topics/tidy.Corpus), a "tidied corpus" returns a data.frame with one-row-per-document. This format contains the document's text and one column for each local (per-document) metadata tag. While I previously used the `unnest_token` function to break up words into individual rows, I use the [tm library](https://www.google.com/search?q=tm+library&oq=tm+library&aqs=chrome..69i57j69i60l3j69i65j69i60.987j0j7&sourceid=chrome&ie=UTF-8) here as it allows me to use other Natural Language Processing tools, such as Latent Dirichlet Allocation (LDA).
+
+Drawing upon the [Text Mining with R](https://www.tidytextmining.com/tfidf.html#the-bind_tf_idf-function), I specifically use the `bind_tf_idf` function to find important words for the content of each document. This function decreases the weight for commonly used words and increases the weight for words that are not used very much in a collection or corpus of documents. 
+
+```{r corpus, echo=TRUE, message=FALSE, warning=FALSE}
+library(tm)
+
+# Create raw corpus from genius lyrics 
+corpus_raw <- Corpus(VectorSource(mitski_albums$lyric))
+
+# Transform everything to lowercase
+corpus <- tm_map(corpus_raw,content_transformer(tolower))
+
+# Strip whitespace
+corpus <- tm_map(corpus, stripWhitespace)
+
+# Remove punctuation
+corpus <- tm_map(corpus, removePunctuation) 
+
+# Remove stopwords
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+
+# Stem the document
+corpus <- tm_map(corpus, stemDocument)
+
+# Create document term matrix
+dtm <- DocumentTermMatrix(corpus)
+
+# Tidy dtm 
+corpus_tidy <- tidy(dtm)
+  corpus_tidy %>% 
+  bind_tf_idf(term, document, count) %>% 
+  arrange(desc(tf_idf))
+```
+
+
+# Latent Dirichlet Allocation (LDA) 
+
+The tidying done in the section above sets the stage for my LDA below. As described in [this Medium article](https://medium.com/@lettier/how-does-lda-work-ill-explain-using-emoji-108abf40fa7d), LDA is a form of natural language processing and topic modeling that creates a “generative probabilistic model” of a collection of composites made up of parts. In other words, LDA facilitates exploration of themes in a collection of documents.
+
+In reference to the "Topic Modelling "chapter from [Tidy Text Mining](https://www.tidytextmining.com/topicmodeling.html), I use a `LDA_VEM` topic model with 3 topics and use the `tidy()` method to extract "beta" per-topic-per-word probabilities. For each topic-per-word, the "beta" is the probability of that term being generated from that topic.
+
+```{r LDA}
+# Deletes rows with zero entry because each row needs to contain at least one non-zero entry
+raw.sum <- apply(dtm, 1, FUN=sum)
+dtm <- dtm[raw.sum!=0,]
+
+# LDA 
+output <- LDA(dtm, k = 3, control = list(seed = 1234))
+beta <- tidy(output, matrix = "beta")
+filter(beta, topic==1)%>% arrange(desc(beta))
+filter(beta, topic==2)%>% arrange(desc(beta))
+filter(beta, topic==3)%>% arrange(desc(beta))
+round(head(posterior(output, dtm)$topics), digits = 3)
+
+# Use dplyr’s top_n() to find the 10 terms that are most common within each of the 3 topics
+mitski_top_terms <- beta %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+# Create ggplot
+g_mitski_top_terms <- mitski_top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip() +
+  scale_x_reordered()
+
+g_mitski_top_terms
+```
+
+![lda](/img/lda.png)
+
+# In Defense of Wordclouds
+
+While the use of wordclouds is often criticized by data scientists, wordclouds provide an easily digestable visual in service of lyrical content analysis. Analyzing a wordcloud is simple: the bigger and bolder a text is, the more frequently it appears in the data.frame. Below is a wordcloud for all three of Mitski's studio albums.
+
+```{r wordcloud, warning=FALSE}
+library(wordcloud)
+
+# Wordcloud for three studio albums
+cloud <- wordcloud(corpus, max.words = 70, random.order = FALSE, ordered.clouds = TRUE)
+```
+
+![wc1](/img/wc1.png)
+
+Using the [ggwordcloud](https://cran.r-project.org/web/packages/ggwordcloud/vignettes/ggwordcloud.html) package, I also created three separate wordclouds for each of Mitski's three records in ascending order of release.
+
+```{r gg_wordcloud, warning=FALSE}
+library(ggwordcloud)
+
+# Separate words and join stop_words table to each individual record data.frame
+bury_me_2 <- bury_me %>%
+  unnest_tokens(word, lyric) %>%
+  anti_join(stop_words) 
+
+# Create ggplot wordcloud
+set.seed(42)
+bury_me_2_wc <- ggplot(bury_me_2, aes(label = word, size = word)) +
+  geom_text_wordcloud() +
+  theme_minimal()
+
+# Separate words and join stop_words table to each individual record data.frame
+puberty_2 <- puberty %>%
+  unnest_tokens(word, lyric) %>%
+  anti_join(stop_words) 
+
+# Create ggplot wordcloud
+set.seed(42)
+puberty_2_wc <- ggplot(puberty_2, aes(label = word, size = word)) +
+  geom_text_wordcloud() +
+  theme_minimal()
+
+# Separate words and join stop_words table to each individual record data.frame
+be_the_cowboy_2 <- be_the_cowboy %>%
+  unnest_tokens(word, lyric) %>%
+  anti_join(stop_words) 
+
+# Create ggplot wordcloud
+set.seed(42)
+be_the_cowboy_2_wc <- ggplot(be_the_cowboy_2, aes(label = word, size = word)) +
+  geom_text_wordcloud() +
+  theme_minimal()
+
+bury_me_2_wc
+```
+
+![wc2](/img/wc2.png)
+
+```
+puberty_2_wc
+```
+
+![wc3](/img/wc3.png)
+
+```
+be_the_cowboy_2_wc
+```
+![wc4](/img/wc4.png)
+
+
+# Conclusion
+
+Mitski is famed for her poetic prose about heartache and loneliness, strong vocal abilities, and esoteric performance style. In an effort to better understand Mitski's songs, this project was able to offer a more data-driven analysis of the themes in Mitski's discography. 
+
+The ggplots displayed under the "Descriptive Statistics" section offered quantitative data points to my analysis. The core text analysis methods used-- Sentiment Analysis and LDA-- allowed me to hone into the words and feelings evoked by Mitski's lyrical diction. The wordclouds served as a fun visual to gain a cursory understanding of how the lyrical content differed among Mitski's three studio albums between 2014 and 2018.
+
+Some drawbacks to my analysis included an ambiguity to the role of the unnest function and stop words. In other words, to fully get to know Mitski's lyrical themes, it is important to analyze her lyrics in the context of complete phrases and stop words. Lastly, I posit that if the research goal is to analyze Mitski's discography, this lyrical text analysis would need to be complemented with an analysis of Mitski's music-- how do instruments, beats, and voice intonation manifest in Mitski's music? 
+
